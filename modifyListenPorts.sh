@@ -31,11 +31,13 @@ getCreds () {
 
 getListenPortID () {
 
-echo "Getting ListenPort(8443) ID for $1"
+PORT=$2
+
+echo "---> Getting ID for port: $PORT"
 
 curl -s -u $USERNAME:$PASSWORD -k -X GET https://$1:9443/restman/1.0/listenPorts -H "Content-Type: text/xml" >> $$_GETALL_LP_RESPONSE.xml
 
-LISTEN_PORT_XPATH="/l7:List/l7:Item[l7:Name='Default HTTPS (8443)']/l7:Id"
+LISTEN_PORT_XPATH="/l7:List/l7:Item[l7:Resource/l7:ListenPort/l7:Port=$PORT]/l7:Id"
 
 LISTEN_PORT_ID=`xpath $$_GETALL_LP_RESPONSE.xml "$LISTEN_PORT_XPATH"`
 
@@ -49,7 +51,7 @@ modifyListenPorts () {
 
   while IFS='' read -r line || [[ -n "$line" ]]; do
 
-	getListenPortID $line
+	getListenPortID $line 8443
 
 	echo "----- $line -----"
 	echo "Modifying Listen port [ $LISTEN_PORT_ID ] on cluster $line"
@@ -70,4 +72,4 @@ done < "targetClusters.txt"
 # MAIN
 
 getCreds
-modifyListenPorts
+modifyListenPorts 
